@@ -19,7 +19,7 @@ max_seq_length=384 # 不限制格式的COT文本最大长度295
 train_batch_size=4
 eval_batch_size=4
 num_epochs=1
-learning_rate=5e-7
+learning_rate=1e-7
 gradient_accumulation_steps=1
 weight_decay=0.01
 

@@ -18,7 +18,7 @@ max_seq_length=384
 train_batch_size=4
 eval_batch_size=4
 num_epochs=1
-learning_rate=5e-6
+learning_rate=1e-6
 gradient_accumulation_steps=1
 weight_decay=0.01
 
