@@ -80,6 +80,13 @@ class ModelArguments:
             "which case you must install this manually by running `pip install flash-attn --no-build-isolation`."
         },
     )
+    loss_type: Optional[str] = field(
+        default="ForSequenceClassification",
+        metadata={
+            "help": "Which loss function to use. You can run `--loss_type=ForCausalLM`, in "
+            "which case you must install this manually by running `pip install flash-attn --no-build-isolation`."
+        },
+    )
 
 @dataclass
 class DataArguments:
@@ -276,6 +283,8 @@ def main():
         revision=model_args.model_revision,
         # Qwen Classification需指定pad_token_id
         pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
+        # 指定loss_type
+        loss_type="ForSequenceClassification",
     )
 
     torch_dtype = get_torch_dtype(model_args.torch_dtype) if model_args.torch_dtype else None

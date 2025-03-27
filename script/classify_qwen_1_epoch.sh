@@ -8,24 +8,26 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 master_port=$2
 
 model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
-train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0326/train.jsonl"
-valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0326/valid.jsonl"
-test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0326/test.jsonl"
-movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0326/filtered_movies_qwen_test.csv"
+train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0324/train.jsonl"
+valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0324/valid.jsonl"
+test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0324/test.jsonl"
+movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/qwen_0324/filtered_movies_qwen_test.csv"
 
-# max_seq_length=256 # COT文本最大长度239
+max_seq_length=256 # COT文本最大长度239
 # max_seq_length=384 # 限制后的COT文本最大长度315
-max_seq_length=384 # 不限制格式的COT文本最大长度295
+# max_seq_length=384 # 不限制格式的COT文本最大长度295
 train_batch_size=4
 eval_batch_size=4
 num_epochs=1
 learning_rate=1e-6
-gradient_accumulation_steps=1
+gradient_accumulation_steps=2
 weight_decay=0.01
 
-run_dir_suffix="result-qwen-new-1epoch-text"
+loss_type="ForSequenceClassification"
+
+run_dir_suffix="result-qwen-new-1epoch"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=text_data+lr-${learning_rate}+gas-${gradient_accumulation_steps}+bs-${train_batch_size}
+run_name=new_data+lr-${learning_rate}+gas-${gradient_accumulation_steps}+bs-${train_batch_size}
 log_dir=log/qwen/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 
@@ -79,6 +81,7 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master
   --gradient_checkpointing True \
   --deepspeed /home/wangxiaolei/mengfanzhe/cot_rec/utils/ds_z3_bf16.json \
   --report_to wandb \
+  --loss_type ${loss_type} \
   2>&1 | tee ${log_dir}/${run_name}.log
 
 #   --save_steps \

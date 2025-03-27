@@ -122,7 +122,7 @@ After completing the step-by-step analysis, provide a final preference summary u
 - Classic movies with enduring appeal and strong performances.
 ```
 
-- 仍然会有部分回复在User Preferences中携带电影名称，主要集中在(提到Star Wars / The Hobbit系列，或在说dislike...时)：
+- 仍然会有部分回复在User Preferences中携带电影名称，主要集中在(提到Star Wars / The Hobbit系列，或在说dislike...时加入特定电影名称)：
 
 1. 
 ```
@@ -337,7 +337,7 @@ I don't know.
 ```
 - 模型在User Preferences总结中输出 I don't know.的概率增加
 
-- grad norm在下降初期存在大量尖刺，且发生梯度爆炸 -> 与数据格式有关？
+- grad norm在下降初期存在大量尖刺，且发生梯度爆炸 -> 与数据格式的改变有关，为了追求训练的稳定可能还是要固定一种输出格式？
 
 # 对于Deepseek模型:
 
