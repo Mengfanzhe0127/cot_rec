@@ -20,7 +20,7 @@ train_batch_size=4
 eval_batch_size=4
 num_epochs=1
 learning_rate=1e-6
-gradient_accumulation_steps=2
+gradient_accumulation_steps=1
 weight_decay=0.01
 
 loss_type="ForSequenceClassification"
