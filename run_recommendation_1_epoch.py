@@ -187,7 +187,7 @@ def setup_wandb(training_args):
         training_args.local_rank == 0 or training_args.local_rank == -1
     ):
         run_name = os.path.basename(training_args.output_dir)
-        project_name = os.environ.get("WANDB_PROJECT", "filter")
+        project_name = os.environ.get("WANDB_PROJECT", "filter_user")
         
         wandb.init(
             project=project_name,
@@ -330,13 +330,57 @@ def main():
     eval_dataset = None
     predict_dataset = None
 
+
+    ##############################################强制记录顺序#############################################
+    # if training_args.do_train:
+    #     raw_train_dataset = raw_datasets["train"]
+    #     original_records = []
+    #     for example in raw_train_dataset:
+    #         original_records.append({
+    #             'id': example['id'],
+    #             'initiatorWorkerId': example['initiatorWorkerId'],
+    #             'conversationId': example['conversationId'],
+    #             'target_movie': example['target_movie']
+    #         })
+        
+    #     train_dataset = processed_datasets["train"]
+    #     if data_args.max_train_samples is not None:
+    #         max_train_samples = min(len(train_dataset), data_args.max_train_samples)
+    #         train_dataset = train_dataset.select(range(max_train_samples))
+        
+    #     if data_args.shuffle_train_dataset:
+    #         print(f'use seed: {data_args.shuffle_seed}')
+    #         generator = torch.Generator()
+    #         generator.manual_seed(data_args.shuffle_seed)
+    #         shuffled_indices = torch.randperm(len(train_dataset), generator=generator).tolist()
+    #         # shuffled_indices = torch.randperm(len(indices), generator=generator)
+    #         # train_dataset = train_dataset.shuffle(seed=data_args.shuffle_seed)
+    #         train_dataset = train_dataset.select(shuffled_indices)
+    #         shuffled_records = [original_records[i] for i in shuffled_indices]
+
+    #         output_dir = "/home/wangxiaolei/mengfanzhe/cot_rec"
+    #         order_file = os.path.join(output_dir, "filter_user/train_shuffle_order_filter_user.txt")
+    #         with open(order_file, 'w', encoding='utf-8') as f:
+    #             f.write(f"Shuffle seed: {data_args.shuffle_seed}\n")
+    #             f.write("\nDetailed mapping:\n")
+    #             f.write("Index\tOriginal ID\tShuffled ID\tOriginal Movie\tShuffled Movie\n")
+    #             for i in range(len(original_records)):
+    #                 f.write(f"{i}\t{original_records[i]['id']}\t{shuffled_records[i]['id']}\t"
+    #                         f"{original_records[i]['target_movie']}\t{shuffled_records[i]['target_movie']}\n")
+                
+    #         print(f"Shuffle order file has been saved to {order_file}")
+    ###########################################################################################################
+    
+    ############################################## train ######################################################
     if training_args.do_train:
         train_dataset = processed_datasets["train"]
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
         if data_args.shuffle_train_dataset:
+            print(f'use seed: {data_args.shuffle_seed}')
             train_dataset = train_dataset.shuffle(seed=data_args.shuffle_seed)
+    ###########################################################################################################
     
     if training_args.do_eval:
         eval_dataset = processed_datasets["validation"]
