@@ -2,3 +2,5 @@ dataset/
 log/
 outputs/
 process_dataset/
+梯度爆炸分析/
+prompt分析/
