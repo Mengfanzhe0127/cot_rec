@@ -17,7 +17,7 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from transformers import is_wandb_available
 
-from model.classify_model import Qwen2ForClassification
+from transformers.models.qwen2.modeling_qwen2 import Qwen2ForSequenceClassification
 from utils.metrics import compute_recommendation_metrics
 
 from datasets import load_dataset
@@ -187,7 +187,7 @@ def setup_wandb(training_args):
         training_args.local_rank == 0 or training_args.local_rank == -1
     ):
         run_name = os.path.basename(training_args.output_dir)
-        project_name = os.environ.get("WANDB_PROJECT", "cot_result_1_epoch")
+        project_name = os.environ.get("WANDB_PROJECT", "filter")
         
         wandb.init(
             project=project_name,
@@ -273,6 +273,7 @@ def main():
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         trust_remote_code=model_args.trust_remote_code,
+        truncation_side="left",
     )
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
@@ -289,7 +290,7 @@ def main():
 
     torch_dtype = get_torch_dtype(model_args.torch_dtype) if model_args.torch_dtype else None
 
-    model = Qwen2ForClassification.from_pretrained(
+    model = Qwen2ForSequenceClassification.from_pretrained(
         model_args.model_name_or_path,
         config=config,
         torch_dtype=torch_dtype,
