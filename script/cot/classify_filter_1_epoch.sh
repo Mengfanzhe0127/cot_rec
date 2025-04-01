@@ -16,7 +16,7 @@ movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter/movies_with
 max_seq_length=2048 # COT文本中位数1617，最大长度11554，平均2198.06
 train_batch_size=4
 eval_batch_size=4
-num_epochs=3
+num_epochs=5
 learning_rate=5e-6
 gradient_accumulation_steps=4
 weight_decay=0.01
@@ -63,7 +63,11 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master
   --do_eval \
   --do_predict \
   --save_strategy epoch \
-  --save_only_model \
+  --save_total_limit 1 \
+  --load_best_model_at_end \
+  --metric_for_best_model "recall@10" \
+  --greater_is_better True \
+  --overwrite_output_dir True \
   --logging_dir ${log_dir} \
   --num_train_epochs ${num_epochs} \
   --per_device_train_batch_size ${train_batch_size} \
