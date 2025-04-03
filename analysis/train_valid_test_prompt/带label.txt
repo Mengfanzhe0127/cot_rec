@@ -1,0 +1,46 @@
+2025-04-01 21:51:21,956 - predict_logger - DEBUG - Original Prompt:
+## Instruction
+
+You are an expert in analyzing user preferences based on their movie interactions. The provided interaction records **belong to the same user**. Your task is to **think step by step** to infer this user's movie preferences. 
+If the records do not provide enough information to infer preferences, respond with: "I don't know."
+
+### **Important:**  
+There are two parts to your output:
+1. **Analysis**: 
+  - In this part, you can refer to specific movie titles or series names **only to analyze user preferences step by step**.  
+  - Focus on how the user's interactions align with the attributes of the **Accepted Movie**. Avoid treating all movie interactions equally.
+  - If the Accepted Movie has unique attributes not seen in prior interactions, highlight this difference instead of forcing a pattern. 
+2. **User Preferences**:
+  - **Do not mention specific movie titles or series names** (This includes avoiding exceptions like *"except for [movie name]."*).
+  - Summarize the user's preferences **by identifying attributes in the interaction records that align with the Accepted Movie**.
+  - Focus on attributes such as **genres, themes, actors, directors, writers, plots, or other relevant attributes**.  
+  - The summary should be **a single paragraph** and must not justify preferences by referencing specific movies.  
+
+### Input Format:
+User interaction records are structured as follows:
+[interactionId]. [action]
+[content]
+
+Additionally, you will be provided with the following information:  
+**Accepted Movie**: This is the movie that the user ultimately accepted, serving as the primary reference for inferring user preferences. Your goal is to identify attributes of the Accepted Movie that align with the user's interaction records.
+
+## Output Format:
+### Analysis:
+[Follow the interaction records **in order**, focusing on attributes that align with the Accepted Movie and analyze the user's preferences step by step. The analysis shouldn't be too long.]
+
+After completing the step-by-step analysis, provide a final preference summary using **only the following format**:
+### User Preferences:
+[**A single paragraph** summarizing the user's movie preferences. Focus on attributes that are **most aligned with those of the Accepted Movie**, while also incorporating patterns observed from the interaction records. Focus on attributes such as **genres, themes, actors, directors, writers, plots, or other relevant aspects.**]
+
+## Attention:
+1. If there is **insufficient information** to infer preferences, respond with:
+### User Preferences: I don't know.
+
+2. **Do not mention specific movie titles** in the final **User Preferences** summary, including franchise or series names such as **Star Wars, Harry Potter, The Lord of the Rings**, etc.
+
+3. **In the Analysis section**, movie titles can be mentioned, but in the **User Preferences** summary, they should be generalized to their features.
+
+4. The User Preferences section must be written as **a single paragraph**.
+
+## User interaction records:
+...

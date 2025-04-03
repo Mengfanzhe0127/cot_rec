@@ -1,0 +1,141 @@
+1. 
+
+## User interaction records:
+
+1. Conversation
+User: Hi
+System: Hi could you recommend a movie that is a good Drama?
+User: I can but I'm a movie seeker and you're the recommender :)
+System: oh lol ok
+User: Could you recommend me a drama? :) Maybe something like Wonder  (2017)
+System: I like Hellraiser: Inferno (2000)
+User: That sounds like a horror movie not a drama
+User: I like horror movies though
+System: I also like Storm of the Century by Stephen King
+System: Its a Drama and Horror
+User: I like horror movies but i'm in the mood for drama / tearjerker movies
+System: Then you would probably like The Shack  (2017)
+User: I've watched this movie and i didn't like it. I know it's a Christian movie but it goes against Bible. I won't get into details.
+User: But I really loved God's Not Dead  (2014)
+System: Another good one is The Notebook (2004)
+User: I love Notebook  (2006) ! I think i will watch it again tonight
+LLM Response:
+### Analysis:
+The user initially expresses a preference for drama movies, specifically mentioning "Wonder" (2017) as an example. They clarify that they like horror movies but are currently in the mood for drama or tearjerker movies. The user dislikes "The Shack" (2017) due to its religious content, even though it is a drama. However, they enjoyed "God's Not Dead" (2014), which is a Christian-themed drama. The user also expresses a strong liking for "The Notebook" (2006), indicating a preference for romantic dramas with emotional depth.
+
+### User Preferences:
+The user prefers dramas with emotional depth and romantic elements, often featuring tearjerker moments. They enjoy movies that evoke strong emotional responses and are particularly drawn to romantic dramas. While they have a general interest in horror, their current preference leans towards dramas that are emotionally engaging and have a strong narrative focus.
+Conversation ID: 19604
+
+
+2. 
+
+## Instruction
+
+You are an expert in analyzing user preferences based on their movie interactions. The provided interaction records **belong to the same user**. Your task is to **think step by step** to infer this user's movie preferences. 
+If the records do not provide enough information to infer preferences, respond with: "I don't know."
+
+### **Important:**  
+There are two parts to your output:
+1. **Analysis**: In this part, you can refer to specific movie titles or series names to help identify user preferences step by step.  
+2. **User Preferences**: In this part, **do not mention specific movie titles or series names** (This includes avoiding exceptions like "except for "[movie name]."). Instead, you should summarize user preferences for movie attributes (e.g., genre, themes, narrative styles, etc.). Do not justify movie preferences by mentioning movie titles.
+
+### Input Format:
+User interaction records are structured as follows:
+[interactionId]. [action]
+[content]
+
+## Output Format:
+### Analysis:
+[Follow the interaction records **in order** and provide a **brief and clear** step-by-step analysis. The analysis shouldn't be too long.]
+
+After completing the step-by-step analysis, provide a final preference summary using **only the following format**:
+### User Preferences:
+[**A single paragraph** that summarizes the user's movie preferences, based on inferred attributes such as **genres, themes, actors, directors, writers, plots, or other relevant aspects.**]
+
+## Attention:
+1. If there is **insufficient information** to infer preferences, respond with:
+### User Preferences: I don't know.
+
+2. **Do not mention specific movie titles** in the final **User Preferences** summary, including franchise or series names such as **Star Wars, Harry Potter, The Lord of the Rings**, etc.
+
+3. **In the Analysis section**, movie titles can be mentioned, but in the **User Preferences** summary, they should be generalized to their features.
+
+4. The User Preferences section must be written as **a single paragraph**.
+
+## User interaction records:
+
+1. Conversation
+System: Hi
+System: What type of movie do you want to see?
+User: Suspense!
+User: Suspense!
+User: And hello!!
+System: Ok I'll try and think of some!
+User: Great!
+System: Have you seen Shutter Island  (2010)?
+User: I have not!
+User: ll ad that to my playlist!
+System: Or have you seen Prisoners  (2013)?
+User: No I havent
+LLM Response:
+### Analysis:
+The user expresses a clear preference for suspense movies, as indicated by their repeated mention of "Suspense!" in the conversation. They show interest in new movies, as evidenced by their excitement about adding "Shutter Island" to their playlist, despite not having seen it. The user also shows curiosity about other suspenseful films like "Prisoners," indicating a willingness to explore similar genres and themes.
+
+### User Preferences:
+The user prefers movies with suspenseful and thriller elements, showing interest in films that offer intense and engaging narratives. They are open to exploring new movies within the suspense genre and seem to appreciate films that provide a thrilling and immersive experience.
+Conversation ID: 13794
+
+3.
+### Analysis:
+The user has shown interest in a variety of genres and themes, including action, comedy, romantic comedy, and crime. The user has interacted with movies like "Reservoir Dogs," "The Godfather," and "The Departed," indicating a preference for crime and action films. They also expressed interest in action movies with a focus on superheroes and foreign action films, such as "XXX," "Logan," and "The Foreigner." The user has also shown interest in comedies, including "Anchorman 2: The Legend Continues," "The Hangover," and "The A-Team." Additionally, the user has shown interest in romantic comedies like "Pretty Woman" and "Ghost," and has also expressed interest in movies with a mix of action and comedy, such as "Zombieland" and "The Revenant." The user has also shown interest in movies with a strong narrative and character development, such as "Django Unchained" and "The Notebook."
+
+### User Preferences:
+The user prefers movies with strong narrative and character development, often within the genres of action, comedy, and romantic comedy. They enjoy films with a mix of action and comedy, as well as those with a strong focus on crime and thriller elements. The user also appreciates movies with a strong plot and engaging characters, often featuring well-known actors and directors.
+Conversation ID: 12197
+
+4.
+## Instruction
+
+You are an expert in analyzing user preferences based on their movie interactions. The provided interaction records **belong to the same user**. Your task is to **think step by step** to infer this user's movie preferences. 
+If the records do not provide enough information to infer preferences, respond with: "I don't know."
+
+### **Important:**  
+There are two parts to your output:
+1. **Analysis**: In this part, you can refer to specific movie titles or series names to help identify user preferences step by step.  
+2. **User Preferences**: In this part, **do not mention specific movie titles or series names** (This includes avoiding exceptions like "except for "[movie name]."). Instead, you should summarize user preferences for movie attributes (e.g., genre, themes, narrative styles, etc.). Do not justify movie preferences by mentioning movie titles.
+
+### Input Format:
+User interaction records are structured as follows:
+[interactionId]. [action]
+[content]
+
+## Output Format:
+### Analysis:
+[Follow the interaction records **in order** and provide a **brief and clear** step-by-step analysis. The analysis shouldn't be too long.]
+
+After completing the step-by-step analysis, provide a final preference summary using **only the following format**:
+### User Preferences:
+[**A single paragraph** that summarizes the user's movie preferences, based on inferred attributes such as **genres, themes, actors, directors, writers, plots, or other relevant aspects.**]
+
+## Attention:
+1. If there is **insufficient information** to infer preferences, respond with:
+### User Preferences: I don't know.
+
+2. **Do not mention specific movie titles** in the final **User Preferences** summary, including franchise or series names such as **Star Wars, Harry Potter, The Lord of the Rings**, etc.
+
+3. **In the Analysis section**, movie titles can be mentioned, but in the **User Preferences** summary, they should be generalized to their features.
+
+4. The User Preferences section must be written as **a single paragraph**.
+
+## User interaction records:
+
+1. Click
+Black Panther (2018)
+LLM Response:
+### Analysis:
+The user clicked on "Black Panther (2018)," which is an action-packed superhero film with themes of African culture, strong female characters, and a focus on social justice. This interaction suggests an interest in films that blend action with deeper social and cultural themes. The user might also appreciate films with strong, diverse casts and narratives that explore complex social issues.
+
+### User Preferences:
+The user prefers movies that blend action with deeper social and cultural themes, featuring strong, diverse casts and narratives that explore complex social issues.
+Conversation ID: 14776

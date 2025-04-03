@@ -23,6 +23,8 @@ from utils.metrics import compute_recommendation_metrics
 from datasets import load_dataset
 import pandas as pd
 
+from utils.custom_trainer import CustomTrainer
+
 if is_wandb_available():
     import wandb
 
@@ -86,6 +88,12 @@ class ModelArguments:
             "help": "Which loss function to use. You can run `--loss_type=ForCausalLM`, in "
             "which case you must install this manually by running `pip install flash-attn --no-build-isolation`."
         },
+    )
+    log_step: Optional[bool] = field(
+        default=False,
+        metadata={
+            "help": "Whether to log the step data."
+        }
     )
 
 @dataclass
@@ -187,7 +195,7 @@ def setup_wandb(training_args):
         training_args.local_rank == 0 or training_args.local_rank == -1
     ):
         run_name = os.path.basename(training_args.output_dir)
-        project_name = os.environ.get("WANDB_PROJECT", "filter_user")
+        project_name = os.environ.get("WANDB_PROJECT", "all_user")
         
         wandb.init(
             project=project_name,
@@ -274,6 +282,7 @@ def main():
         revision=model_args.model_revision,
         trust_remote_code=model_args.trust_remote_code,
         truncation_side="left",
+        # padding_side="right", # 针对长度不足文本的尝试
     )
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
@@ -377,9 +386,9 @@ def main():
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
-        if data_args.shuffle_train_dataset:
-            print(f'use seed: {data_args.shuffle_seed}')
-            train_dataset = train_dataset.shuffle(seed=data_args.shuffle_seed)
+        # if data_args.shuffle_train_dataset:
+        #     print(f'use seed: {data_args.shuffle_seed}')
+        #     train_dataset = train_dataset.shuffle(seed=data_args.shuffle_seed)
     ###########################################################################################################
     
     if training_args.do_eval:
@@ -394,14 +403,28 @@ def main():
             max_predict_samples = min(len(predict_dataset), data_args.max_predict_samples)
             predict_dataset = predict_dataset.select(range(max_predict_samples))
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        compute_metrics=compute_metrics,
-        tokenizer=tokenizer,
-    )
+    if model_args.log_step:
+        steps_to_log = [30, 31, 32, 34]
+
+        trainer = CustomTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            compute_metrics=compute_metrics,
+            processing_class=tokenizer,
+            steps_to_log=steps_to_log,
+        )
+    else:
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            compute_metrics=compute_metrics,
+            processing_class=tokenizer,
+        )
+    
 
     # wandb
     if training_args.report_to and "wandb" in training_args.report_to:
@@ -419,7 +442,7 @@ def main():
         
         trainer.save_model()
         trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
+        trainer.save_metrics(split="train", metrics=metrics)
         trainer.save_state()
 
         logger.info("Finished training")
@@ -429,15 +452,15 @@ def main():
         metrics = trainer.evaluate(eval_dataset=eval_dataset)
         
         trainer.log_metrics("eval", metrics)
-        trainer.save_metrics("eval", metrics)
+        trainer.save_metrics(split="eval", metrics=metrics)
 
     if training_args.do_predict:
         logger.info("*** Prediction ***")
-        predict_results = trainer.predict(predict_dataset, metric_key_prefix="predict")
+        predict_results = trainer.predict(test_dataset=predict_dataset)
         metrics = predict_results.metrics
         
         trainer.log_metrics("predict", metrics)
-        trainer.save_metrics("predict", metrics)
+        trainer.save_metrics(split="predict", metrics=metrics)
     
     if is_wandb_available() and wandb.run is not None:
         wandb.finish()

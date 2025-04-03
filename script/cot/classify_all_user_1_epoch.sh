@@ -1,6 +1,6 @@
 #! /bin/bash
 
-export TOKENIZERS_PARALLELISM=false
+# export TOKENIZERS_PARALLELISM=false
 
 GPU_ID=$1
 GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
@@ -11,14 +11,14 @@ model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
 train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/all_user/train.jsonl"
 valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/all_user/valid.jsonl"
 test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/all_user/test.jsonl"
-movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/all_user/movies_with_mentions_filter.csv"
+movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/all_user/movies_with_mentions_all_user.csv"
 
-max_seq_length=3072 # COT文本中位数2802，最大长度19653，平均3533
+max_seq_length=2048 # COT文本中位数2802，最大长度19655，平均3535，User Preferences部分最大长度500
 train_batch_size=4
 eval_batch_size=4
 num_epochs=1
 learning_rate=5e-6
-gradient_accumulation_steps=8
+gradient_accumulation_steps=4
 weight_decay=0.01
 
 loss_type="ForSequenceClassification"
@@ -75,11 +75,12 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master
   --max_grad_norm 1.0 \
   --logging_strategy steps \
   --logging_steps 1 \
-  --evaluation_strategy epoch \
+  --eval_strategy epoch \
   --gradient_checkpointing True \
   --deepspeed /home/wangxiaolei/mengfanzhe/cot_rec/utils/ds_z3_bf16.json \
   --report_to wandb \
   --loss_type ${loss_type} \
+  --log_step \
   2>&1 | tee ${log_dir}/${run_name}.log
 
 #   --save_steps \

@@ -1,0 +1,35 @@
+## Instruction
+
+You are an expert in analyzing user preferences based on their movie interactions. The provided interaction records **belong to the same user**. Your task is to **think step by step** to infer this user's movie preferences. 
+If the records do not provide enough information to infer preferences, respond with: "I don't know."
+
+### **Important:**  
+There are two parts to your output:
+1. **Analysis**: In this part, you can refer to specific movie titles or series names to help identify user preferences step by step.  
+2. **User Preferences**: In this part, **do not mention specific movie titles or series names** (This includes avoiding exceptions like "except for "[movie name]."). Instead, you should summarize user preferences for movie attributes (e.g., genre, themes, narrative styles, etc.). Do not justify movie preferences by mentioning movie titles.
+
+### Input Format:
+User interaction records are structured as follows:
+[interactionId]. [action]
+[content]
+
+## Output Format:
+### Analysis:
+[Follow the interaction records **in order** and provide a **brief and clear** step-by-step analysis. The analysis shouldn't be too long.]
+
+After completing the step-by-step analysis, provide a final preference summary using **only the following format**:
+### User Preferences:
+[**A single paragraph** that summarizes the user's movie preferences, based on inferred attributes such as **genres, themes, actors, directors, writers, plots, or other relevant aspects.**]
+
+## Attention:
+1. If there is **insufficient information** to infer preferences, respond with:
+### User Preferences: I don't know.
+
+2. **Do not mention specific movie titles** in the final **User Preferences** summary, including franchise or series names such as **Star Wars, Harry Potter, The Lord of the Rings**, etc.
+
+3. **In the Analysis section**, movie titles can be mentioned, but in the **User Preferences** summary, they should be generalized to their features.
+
+4. The User Preferences section must be written as **a single paragraph**.
+
+## User interaction records:
+...

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# 参数组合
+declare -a param_combinations=(
+    "1 1e-6"
+    "4 5e-6"
+)
+
+# 默认 GPU ID 和 master_port
+GPU_ID="5,6"
+MASTER_PORT="8000"
+
+# 遍历参数组合
+for combination in "${param_combinations[@]}"; do
+    # 解析参数组合
+    IFS=' ' read -r gradient_accumulation_steps learning_rate <<< "$combination"
+    
+    # 构造运行命令
+    run_command="bash script/cot/classify_all_user_1_epoch.sh $GPU_ID $MASTER_PORT"
+    
+    # 替换参数值
+    modified_script=$(mktemp)
+    while IFS= read -r line; do
+        if [[ "$line" == *"gradient_accumulation_steps="* ]]; then
+            line="gradient_accumulation_steps=$gradient_accumulation_steps"
+        elif [[ "$line" == *"learning_rate="* ]]; then
+            line="learning_rate=$learning_rate"
+        fi
+        echo "$line" >> "$modified_script"
+    done < "script/cot/classify_all_user_1_epoch.sh"
+    
+    # 运行修改后的脚本
+    bash "$modified_script" "$GPU_ID" "$MASTER_PORT"
+    
+    # 删除临时文件
+    rm "$modified_script"
+done

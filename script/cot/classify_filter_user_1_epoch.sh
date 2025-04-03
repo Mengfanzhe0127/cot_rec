@@ -75,11 +75,12 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master
   --max_grad_norm 1.0 \
   --logging_strategy steps \
   --logging_steps 1 \
-  --evaluation_strategy epoch \
+  --eval_strategy epoch \
   --gradient_checkpointing True \
   --deepspeed /home/wangxiaolei/mengfanzhe/cot_rec/utils/ds_z3_bf16.json \
   --report_to wandb \
   --loss_type ${loss_type} \
+  --log_step \
   2>&1 | tee ${log_dir}/${run_name}.log
 
 #   --save_steps \
@@ -98,3 +99,5 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master
 #   --metric_for_best_model "recall@10" \
 #   --greater_is_better True \
 #   --overwrite_output_dir True \
+
+# --log_step
