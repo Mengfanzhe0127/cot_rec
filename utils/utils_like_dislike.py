@@ -21,6 +21,17 @@ def create_movie_text(movie_name, movie_info_dict):
 
     return movie_text
 
+def add_instruction_prompt(texts, instruction, is_query=True):
+    """
+    为文本添加指令提示
+    texts: 文本列表
+    instruction: 指令内容
+    is_query: 是否为查询文本
+    """
+    if is_query:
+        return [f"Instruct: {instruction}\nQuery: {text}" if text.strip() else "" for text in texts]
+    return texts
+
 def compute_all_item_embeddings(model, tokenizer, movie_list, movie_info_dict, batch_size=32, max_length=192, device="cuda"):
     """Calculate all movie embeddings"""
     movie_texts = [create_movie_text(movie, movie_info_dict) for movie in movie_list]

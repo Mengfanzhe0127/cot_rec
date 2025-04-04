@@ -18,11 +18,11 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from transformers import is_wandb_available
 
-from model.dssm_model_sample import Qwen2DSSMSample
-from trainer.dssm_trainer import DSSMTrainer
+from model.dssm_model_like_dislike import Qwen2DSSMLikeDislike
+from trainer.dssm_trainer_like_dislike import DSSMTrainerLikeDislike
 from utils.metrics import compute_recommendation_metrics
-from utils.utils import create_movie_text
-from datacollator.data_collator_sample import DSSMDataCollatorSample
+from utils.utils_like_dislike import create_movie_text
+from datacollator.data_collator_like_dislike import DSSMDataCollatorLikeDislike
 
 from datasets import load_dataset
 import pandas as pd
@@ -84,10 +84,6 @@ class ModelArguments:
             "help": "Which attention implementation to use. You can run `--attn_implementation=flash_attention_2`, in "
             "which case you must install this manually by running `pip install flash-attn --no-build-isolation`."
         },
-    )
-    dnn_output_dim: int = field(
-        default=512,
-        metadata={"help": "The output dimension of the DNN"}
     )
     similarity_temperature: float = field(
         default=0.07,
@@ -209,7 +205,7 @@ def setup_wandb(training_args):
         training_args.local_rank == 0 or training_args.local_rank == -1
     ):
         run_name = os.path.basename(training_args.output_dir)
-        project_name = os.environ.get("WANDB_PROJECT", "dssm_cot_movie_recommendation")
+        project_name = os.environ.get("WANDB_PROJECT", "match_filter_user")
         
         wandb.init(
             project=project_name,
@@ -298,25 +294,18 @@ def main():
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
-        dnn_output_dim=model_args.dnn_output_dim,
         similarity_temperature=model_args.similarity_temperature,
         model_name_or_path=model_args.model_name_or_path,
-        # 添加dropout
-        hidden_dropout_prob=model_args.hidden_dropout_prob,
     )
 
-    if not hasattr(config, "dnn_output_dim"):
-        config.dnn_output_dim = model_args.dnn_output_dim
     if not hasattr(config, "similarity_temperature"):
         config.similarity_temperature = model_args.similarity_temperature
 
-    print(f"Using dnn_output_dim: {getattr(config, 'dnn_output_dim', None)}")
     print(f"Using similarity_temperature: {getattr(config, 'similarity_temperature', None)}")
-    print(f"Using hidden_dropout_prob: {getattr(config, 'hidden_dropout_prob', None)}")
     torch_dtype = get_torch_dtype(model_args.torch_dtype) if model_args.torch_dtype else None
     print(f"Using torch_dtype: {torch_dtype}")
 
-    model = Qwen2DSSMSample.from_pretrained(
+    model = Qwen2DSSMLikeDislike.from_pretrained( 
         model_args.model_name_or_path,
         config=config,
         torch_dtype=torch_dtype,
@@ -324,41 +313,26 @@ def main():
         trust_remote_code=model_args.trust_remote_code,
     )
 
-    ###################################################提前计算全部负样本嵌入###########################################################
-
-    # def precompute_all_item_embeddings(model, tokenizer, movie_list, movie_info_dict, batch_size=32, max_length=192, device="cuda"):
-    #     """预计算所有物品的嵌入"""
-    #     movie_texts = [create_movie_text(movie, movie_info_dict) for movie in movie_list]
-        
-    #     embeddings_list = []
-
-    #     for i in tqdm(range(0, len(movie_texts), batch_size), desc="Precomputing item embeddings"):
-    #         batch_texts = movie_texts[i:i+batch_size]
-    #         inputs = tokenizer(
-    #             batch_texts,
-    #             padding='longest',  # 使用一致的填充策略
-    #             truncation=True,
-    #             max_length=data_args.item_max_length,
-    #             return_tensors="pt"
-    #         ).to(model.device)
-        
-    #         with torch.no_grad():
-    #             batch_embeddings = model.encode_item(
-    #                 input_ids=inputs["input_ids"],
-    #                 attention_mask=inputs["attention_mask"]
-    #             )
-        
-    #         embeddings_list.append(batch_embeddings)
-     
-    #     return torch.cat(embeddings_list, dim=0) 
-   
-    #####################################################################################################
-    # 动态负采样
-
     def preprocess_function(examples):
-        user_texts = examples[data_args.text_column_name]
-        user_encodings = tokenizer(
-            user_texts,
+        # 对like文本进行编码
+        like_texts = examples["like"]
+        like_texts_with_prompt = [f"Given a user's movie preferences, retrieve relevant movies that match these preferences\nQuery: {text}" if text.strip() else "" 
+        for text in like_texts]
+
+        like_encodings = tokenizer(
+            like_texts_with_prompt,
+            padding="longest",
+            max_length=data_args.max_seq_length,
+            truncation=True,
+        )
+    
+        # 对dislike文本进行编码
+        dislike_texts = examples["dislike"]
+        dislike_texts_with_prompt = [f"Given a user's movie preferences, retrieve relevant movies that match these preferences\nQuery: {text}" if text.strip() else "" 
+        for text in dislike_texts]
+
+        dislike_encodings = tokenizer(
+            dislike_texts_with_prompt,
             padding="longest",
             max_length=data_args.max_seq_length,
             truncation=True,
@@ -377,7 +351,7 @@ def main():
             movie_name = examples[data_args.label_column_name][i].strip()
             pos_idx = movie_name_to_idx[movie_name]
             movie_indices.append(pos_idx)
-            
+        
             # ========== 负样本采样 ==========
             all_indices = set(range(len(movie_list)))
             all_indices.remove(pos_idx)
@@ -399,12 +373,14 @@ def main():
 
         num_items = 1 + num_negatives
         return {
-            "user_input_ids": user_encodings["input_ids"], # [batch_size, 批次内最大长度]
-            "user_attention_mask": user_encodings["attention_mask"], # [batch_size, 批次内最大长度]
-            "item_input_ids": item_encodings["input_ids"].view(batch_size, num_items, -1), # [batch_size, num_items = num_pos + num_neg, item_max_length=182]
-            "item_attention_mask": item_encodings["attention_mask"].view(batch_size, num_items, -1), # [batch_size, num_items = num_pos + num_neg, item_max_length=182]
-            "labels": movie_indices, # [batch_size]
-        } # 重新构造三维结构 [B, K+1, L]
+            "like_input_ids": like_encodings["input_ids"],
+            "like_attention_mask": like_encodings["attention_mask"],
+            "dislike_input_ids": dislike_encodings["input_ids"],
+            "dislike_attention_mask": dislike_encodings["attention_mask"],
+            "item_input_ids": item_encodings["input_ids"].view(batch_size, num_items, -1),
+            "item_attention_mask": item_encodings["attention_mask"].view(batch_size, num_items, -1),
+            "labels": movie_indices,
+        }
     #####################################################################################################
     
     processed_datasets = raw_datasets.map(
@@ -416,9 +392,6 @@ def main():
         desc="Tokenizing dataset",
     ) # train, valid, test
 
-    # logger.info("Start precomputing item embeddings...")
-    # item_embeddings = precompute_all_item_embeddings(model, tokenizer, movie_list, movie_info_dict, data_args.item_batch_size, data_args.item_max_length, model.device)
-    # item_embeddings = item_embeddings.to(model.device)
     
     # 筛选数据集
     if training_args.do_train:
@@ -426,8 +399,8 @@ def main():
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
-        if data_args.shuffle_train_dataset:
-            train_dataset = train_dataset.shuffle(seed=data_args.shuffle_seed)
+        # if data_args.shuffle_train_dataset:
+        #     train_dataset = train_dataset.shuffle(seed=data_args.shuffle_seed)
     
     if training_args.do_eval:
         eval_dataset = processed_datasets["validation"]
@@ -442,7 +415,7 @@ def main():
             predict_dataset = predict_dataset.select(range(max_predict_samples))
 
     # 创建自定义的数据整理器
-    data_collator = DSSMDataCollatorSample(
+    data_collator = DSSMDataCollatorLikeDislike(
         tokenizer=tokenizer,
         padding='longest',  # 根据数据参数决定填充策略
         max_user_length=data_args.max_seq_length,
@@ -450,7 +423,7 @@ def main():
         num_negatives=data_args.num_negative_samples,
     )
     
-    trainer = DSSMTrainer(
+    trainer = DSSMTrainerLikeDislike(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
@@ -493,7 +466,7 @@ def main():
 
     if training_args.do_predict:
         logger.info("*** Prediction ***")
-        predict_results = trainer.predict(predict_dataset, metric_key_prefix="predict")
+        predict_results = trainer.predict(predict_dataset)
         metrics = predict_results.metrics
         
         trainer.log_metrics("predict", metrics)
