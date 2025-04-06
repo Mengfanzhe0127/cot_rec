@@ -18,8 +18,8 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from transformers import is_wandb_available
 
-from model.dssm_model_like_dislike import Qwen2DSSMLikeDislike
-from trainer.dssm_trainer_like_dislike import DSSMTrainerLikeDislike
+from model.dssm_model_like_dislike2 import Qwen2DSSMLikeDislike
+from trainer.dssm_trainer_like_dislike2 import DSSMTrainerLikeDislike
 from utils.metrics import compute_recommendation_metrics
 from utils.utils_like_dislike import create_movie_text
 from datacollator.data_collator_like_dislike import DSSMDataCollatorLikeDislike
@@ -277,7 +277,7 @@ def main():
 
     with open(data_args.movie_info_path, 'r', encoding='utf-8') as f:
         movie_info_dict = json.load(f)
-    print(f"Finish loading movie info")
+    print(f"Finish loading {len(movie_info_dict)} movie info")
     
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,

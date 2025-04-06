@@ -7,30 +7,30 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 
 master_port=$2
 
-model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
+model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-1.5B-instruct"
 train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/train_filtered.jsonl"
 valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/valid_filtered.jsonl"
 test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/test_filtered.jsonl"
 movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/movies_with_mentions_clean_filtered.csv"
-movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/matched_movies_qwen.json"
-item_max_length=128 # 电影详细信息文本绝大部分100以内
+movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/filtered_movies_filtered.json"
+item_max_length=128 # 商品文本最大长度89
 item_batch_size=32
 num_negative_samples=96
 
 max_seq_length=1536 # COT文本最大长度1169(带模板)
-train_batch_size=2
-eval_batch_size=2
+train_batch_size=16
+eval_batch_size=16
 num_epochs=1
-learning_rate=5e-6
+learning_rate=1e-6
 min_lr_rate=0.1
 warmup_ratio=0.1
 weight_decay=0.01
 similarity_temperature=0.07
-gradient_accumulation_steps=4
+gradient_accumulation_steps=1
 
 run_dir_suffix="match_filter_user"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=match_filter_user+epoch-${num_epochs}+qwen+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
+run_name=match_filter_user+constant+model-1.5B+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
 log_dir=log/match_filter_user/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 
@@ -44,11 +44,6 @@ fi
 
 if [ ! -f "/home/wangxiaolei/mengfanzhe/cot_rec/run_match_like_dislike.py" ]; then
     echo "Error: main script not found"
-    exit 1
-fi
-
-if [ ! -f "${movie_info_path}" ]; then
-    echo "Error: movie info file not found"
     exit 1
 fi
 
@@ -110,3 +105,5 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master
   # --metric_for_best_model "recall@10" \
   # --greater_is_better True \
   # --overwrite_output_dir True \
+
+  # --lr_scheduler_kwargs "{\"min_lr_rate\": ${min_lr_rate}}" \

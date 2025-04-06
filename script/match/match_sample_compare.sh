@@ -8,14 +8,14 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 master_port=$2
 
 model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
-train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/train_filtered.jsonl"
-valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/valid_filtered.jsonl"
-test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/test_filtered.jsonl"
-movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/movies_with_mentions_clean_filtered.csv"
-movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/filtered/matched_movies_qwen.json"
-item_max_length=128 # 电影详细信息文本绝大部分100以内
+train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/new_data/new_train_filtered.jsonl"
+valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/new_data/new_valid_filtered.jsonl"
+test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/new_data/new_test_filtered.jsonl"
+movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/new_data/movies_with_mentions_clean_filtered.csv"
+movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/new_data/filtered_movies_filtered.json"
+item_max_length=128 # 商品文本最大长度89
 item_batch_size=32
-num_negative_samples=96
+num_negative_samples=32
 
 max_seq_length=1536 # COT文本最大长度1169(带模板)
 train_batch_size=2
@@ -30,7 +30,7 @@ gradient_accumulation_steps=4
 
 run_dir_suffix="match_filter_user"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=match_filter_user+epoch-${num_epochs}+qwen+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
+run_name=match_filter_user+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
 log_dir=log/match_filter_user/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 
@@ -42,13 +42,8 @@ if [ ! -f "/home/wangxiaolei/mengfanzhe/cot_rec/utils/ds_z3_bf16.json" ]; then
     exit 1
 fi
 
-if [ ! -f "/home/wangxiaolei/mengfanzhe/cot_rec/run_match_like_dislike.py" ]; then
+if [ ! -f "/home/wangxiaolei/mengfanzhe/cot_rec/run_match_like_dislike2.py" ]; then
     echo "Error: main script not found"
-    exit 1
-fi
-
-if [ ! -f "${movie_info_path}" ]; then
-    echo "Error: movie info file not found"
     exit 1
 fi
 
@@ -57,7 +52,7 @@ mkdir -p ${output_dir}
 echo "Starting distributed training with ${GPU_COUNT} GPUs..."
 
 CUDA_VISIBLE_DEVICES=${GPU_ID} torchrun --nproc_per_node="${GPU_COUNT}" --master-port="${master_port}" \
-  /home/wangxiaolei/mengfanzhe/cot_rec/run_match_like_dislike.py \
+  /home/wangxiaolei/mengfanzhe/cot_rec/run_match_like_dislike2.py \
   --seed 42 \
   --model_name_or_path ${model_name_or_path} \
   --movie_name_path ${movie_name_path} \
