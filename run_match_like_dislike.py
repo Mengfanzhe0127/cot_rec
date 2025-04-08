@@ -24,8 +24,7 @@ from utils.metrics import compute_recommendation_metrics
 from utils.utils_like_dislike import create_movie_text
 from datacollator.data_collator_like_dislike import DSSMDataCollatorLikeDislike
 
-from datasets import load_dataset
-import pandas as pd
+from datasets import load_dataset, DatasetDict
 
 
 if is_wandb_available():
@@ -135,7 +134,7 @@ class DataArguments:
 
     # 预处理进程数
     preprocessing_num_workers: Optional[int] = field(
-        default=32,
+        default=1,
         metadata={"help": "The number of processes to use for the preprocessing."}
     )
 
@@ -157,10 +156,10 @@ class DataArguments:
     shuffle_seed: int = field(
         default=42, metadata={"help": "Random seed that will be used to shuffle the train dataset."}
     )
-    movie_name_path: str = field(
-        default="dataset/movies_with_mentions.csv",
-        metadata={"help": "Path to the movie name file."}
-    )
+    # movie_name_path: str = field(
+    #     default="dataset/movies_with_mentions.csv",
+    #     metadata={"help": "Path to the movie name file."}
+    # )
     movie_info_path: str = field(
         default=None,
         metadata={"help": "Path to the movie info file."}
@@ -176,6 +175,10 @@ class DataArguments:
     num_negative_samples: int = field(
         default=127,
         metadata={"help": "The number of negative samples for each positive sample."}
+    )
+    wandb_run_name: str = field(
+        default="match_filter_user",
+        metadata={"help": "The name of the wandbrun."}
     )
 
 def compute_metrics(eval_pred):
@@ -200,12 +203,12 @@ def setup_logging(training_args):
     transformers.utils.logging.enable_default_handler()
     transformers.utils.logging.enable_explicit_format()
 
-def setup_wandb(training_args):
+def setup_wandb(training_args, data_args):
     if ("wandb" in training_args.report_to) and (
         training_args.local_rank == 0 or training_args.local_rank == -1
     ):
         run_name = os.path.basename(training_args.output_dir)
-        project_name = os.environ.get("WANDB_PROJECT", "match_filter_user")
+        project_name = os.environ.get("WANDB_PROJECT", data_args.wandb_run_name)
         
         wandb.init(
             project=project_name,
@@ -270,10 +273,37 @@ def main():
 
     raw_datasets = load_dataset("json", data_files=data_files)
 
-    movie_df = pd.read_csv(data_args.movie_name_path)
-    movie_list_raw = [name.strip() for name in movie_df["movieName"]]
-    movie_list = list(dict.fromkeys(movie_list_raw))
+    def filter_empty_preferences(example):
+        return not (example['like'].strip() == "" and example['dislike'].strip() == "")
+    
+    filtered_datasets = DatasetDict()
+    for split, dataset in raw_datasets.items():
+        before_count = len(dataset)
+        filtered_dataset = dataset.filter(filter_empty_preferences)
+        after_count = len(filtered_dataset)
+        print(f'Filtered {before_count - after_count} samples from {split} dataset')
+        filtered_datasets[split] = filtered_dataset
+    
+    raw_datasets = filtered_datasets
+
+    ###############获取全局样本，用于全局随机负采样##################
+    # movie_df = pd.read_csv(data_args.movie_name_path)
+    # movie_list_raw = [name.strip() for name in movie_df["movieName"]]
+    # movie_list = list(dict.fromkeys(movie_list_raw))
+    # print(f"{len(movie_list)} movies has been loaded")
+    ################################################################
+
+    movie_set = set()
+    train_movie_names = [movie.strip() for movie in raw_datasets["train"]["target_movie"]]
+    movie_set.update(train_movie_names)
+    for dataset_name in ["validation", "test"]:
+        val_or_test_movie_names = [movie.strip() for movie in raw_datasets[dataset_name]["target_movie"]]
+        diff = movie_set - set(val_or_test_movie_names)
+        print(f"There are {len(diff)} movies in {dataset_name} that are not in train")
+        movie_set.update(val_or_test_movie_names)
+    movie_list = sorted(list(movie_set))
     print(f"{len(movie_list)} movies has been loaded")
+    
 
     with open(data_args.movie_info_path, 'r', encoding='utf-8') as f:
         movie_info_dict = json.load(f)
@@ -381,7 +411,6 @@ def main():
             "item_attention_mask": item_encodings["attention_mask"].view(batch_size, num_items, -1),
             "labels": movie_indices,
         }
-    #####################################################################################################
     
     processed_datasets = raw_datasets.map(
         preprocess_function,
@@ -438,7 +467,7 @@ def main():
     )
 
     if training_args.report_to and "wandb" in training_args.report_to:
-        setup_wandb(training_args)
+        setup_wandb(training_args, data_args)
     
     if training_args.do_train:
         checkpoint = None
