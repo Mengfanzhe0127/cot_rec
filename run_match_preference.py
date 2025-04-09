@@ -25,7 +25,6 @@ from utils.utils_like_dislike import create_movie_text
 from datacollator.data_collator_preference import DSSMDataCollatorPreference
 
 from datasets import load_dataset
-import pandas as pd
 
 
 if is_wandb_available():
@@ -234,15 +233,13 @@ def main():
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     
     setup_logging(training_args)
-    
-    # 检查参数配置
+
     print(f"Model Arguments:\n {model_args}\n")
     print(f"Data Arguments:\n {data_args}\n")
     print(f"Training Arguments:\n {training_args}\n")
 
     set_seed(training_args.seed)
 
-    # 检测检查点
     last_checkpoint = None
     if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
         last_checkpoint = get_last_checkpoint(training_args.output_dir)
@@ -368,7 +365,8 @@ def main():
         # ========== 逐样本分词 ==========
         item_encodings = tokenizer(
             all_item_texts,
-            padding="max_length",  # 提前填充
+            # padding="max_length",  # 提前填充
+            padding="longest",
             truncation=True,
             max_length=data_args.item_max_length,
             return_tensors="pt",
@@ -392,8 +390,7 @@ def main():
         desc="Tokenizing dataset",
     ) # train, valid, test
 
-    
-    # 筛选数据集
+
     if training_args.do_train:
         train_dataset = processed_datasets["train"]
         if data_args.max_train_samples is not None:
@@ -414,10 +411,10 @@ def main():
             max_predict_samples = min(len(predict_dataset), data_args.max_predict_samples)
             predict_dataset = predict_dataset.select(range(max_predict_samples))
 
-    # 创建自定义的数据整理器
+
     data_collator = DSSMDataCollatorPreference(
         tokenizer=tokenizer,
-        padding='longest',  # 根据数据参数决定填充策略
+        padding='longest',
         max_user_length=data_args.max_seq_length,
         max_item_length=data_args.item_max_length,
         num_negatives=data_args.num_negative_samples,
@@ -434,7 +431,7 @@ def main():
         movie_list=movie_list,
         movie_info_dict=movie_info_dict,
         data_args=data_args,
-        data_collator=data_collator,  # 使用自定义的数据整理器
+        data_collator=data_collator,
     )
 
     if training_args.report_to and "wandb" in training_args.report_to:
