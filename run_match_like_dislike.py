@@ -134,7 +134,7 @@ class DataArguments:
 
     # 预处理进程数
     preprocessing_num_workers: Optional[int] = field(
-        default=1,
+        default=32,
         metadata={"help": "The number of processes to use for the preprocessing."}
     )
 
@@ -261,7 +261,7 @@ def main():
     
     
     data_files = {}
-    if data_args.train_file is not None and training_args.do_train:
+    if data_args.train_file is not None:
         data_files["train"] = data_args.train_file
         logger.info(f"Training data file: {data_args.train_file}")
     if data_args.validation_file is not None and training_args.do_eval:
@@ -423,7 +423,7 @@ def main():
 
     
     # 筛选数据集
-    if training_args.do_train:
+    if "train" in processed_datasets:
         train_dataset = processed_datasets["train"]
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)

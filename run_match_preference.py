@@ -156,10 +156,6 @@ class DataArguments:
     shuffle_seed: int = field(
         default=42, metadata={"help": "Random seed that will be used to shuffle the train dataset."}
     )
-    # movie_name_path: str = field(
-    #     default="dataset/movies_with_mentions.csv",
-    #     metadata={"help": "Path to the movie name file."}
-    # )
     movie_info_path: str = field(
         default=None,
         metadata={"help": "Path to the movie info file."}
@@ -173,8 +169,12 @@ class DataArguments:
         metadata={"help": "The batch size for the item text."}
     )
     num_negative_samples: int = field(
-        default=127,
+        default=32,
         metadata={"help": "The number of negative samples for each positive sample."}
+    )
+    wandb_run_name: str = field(
+        default="match_filter_user_preference",
+        metadata={"help": "The name of the wandbrun."}
     )
 
 def compute_metrics(eval_pred):
@@ -199,12 +199,12 @@ def setup_logging(training_args):
     transformers.utils.logging.enable_default_handler()
     transformers.utils.logging.enable_explicit_format()
 
-def setup_wandb(training_args):
+def setup_wandb(training_args, data_args):
     if ("wandb" in training_args.report_to) and (
         training_args.local_rank == 0 or training_args.local_rank == -1
     ):
         run_name = os.path.basename(training_args.output_dir)
-        project_name = os.environ.get("WANDB_PROJECT", "match_filter_user_preference")
+        project_name = os.environ.get("WANDB_PROJECT", data_args.wandb_run_name)
         
         wandb.init(
             project=project_name,
@@ -365,8 +365,8 @@ def main():
         # ========== 逐样本分词 ==========
         item_encodings = tokenizer(
             all_item_texts,
-            # padding="max_length",  # 提前填充
-            padding="longest",
+            padding="max_length",  # 提前填充
+            # padding="longest",
             truncation=True,
             max_length=data_args.item_max_length,
             return_tensors="pt",
@@ -435,7 +435,7 @@ def main():
     )
 
     if training_args.report_to and "wandb" in training_args.report_to:
-        setup_wandb(training_args)
+        setup_wandb(training_args, data_args)
     
     if training_args.do_train:
         checkpoint = None
