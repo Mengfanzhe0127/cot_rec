@@ -8,22 +8,22 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 master_port=$2
 
 model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
-train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_sample-3_top1/train_sft_sample-3_top1_preference.jsonl"
-valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_sample-3_top1/valid_sft_sample-3_top1_preference.jsonl"
-test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_sample-3_top1/test_sft_sample-3_top1_preference.jsonl"
+train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/train_dpo_preference.jsonl"
+valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/valid_dpo_preference.jsonl"
+test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/test_dpo_preference.jsonl"
 # movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/movies_with_mentions_clean.csv"
-movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_sample-3_top1/matched_movies_origin.json"
+movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/matched_movies_origin.json"
 item_max_length=128
 item_batch_size=32
 num_negative_samples=32
 
-max_seq_length=1024 # COT文本最大长度1353(带模板)
+max_seq_length=1536
 train_batch_size=2
 eval_batch_size=2
 num_epochs=1
 learning_rate=5e-6
 min_lr_rate=0.1
-warmup_ratio=0.1q
+warmup_ratio=0.1
 weight_decay=0.01
 similarity_temperature=0.07
 gradient_accumulation_steps=4
@@ -32,7 +32,7 @@ wandb_run_name="match_filter_user_sft"
 
 run_dir_suffix="match_filter_user_sft"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=match_filter_user_sft+sample-top1-0.3+preference+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
+run_name=match_filter_user_sft+dpo-preference+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
 log_dir=log/match_filter_user_sft/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 

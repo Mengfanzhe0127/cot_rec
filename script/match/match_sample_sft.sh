@@ -8,15 +8,15 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 master_port=$2
 
 model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
-train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_top1_0.3/train_sft_sample-top1-0.3.jsonl"
-valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_top1_0.3/valid_sft_sample-top1-0.3.jsonl"
-test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_top1_0.3/test_sft_sample-top1-0.3.jsonl"
-movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/sft_top1_0.3/matched_movies_origin.json"
+train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/train_dpo.jsonl"
+valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/valid_dpo.jsonl"
+test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/test_dpo.jsonl"
+movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/matched_movies_origin.json"
 item_max_length=128 # 电影详细信息文本绝大部分100以内
 item_batch_size=32
 num_negative_samples=32
 
-max_seq_length=1024 # COT文本最大长度1061
+max_seq_length=1536
 train_batch_size=2
 eval_batch_size=2
 num_epochs=1
@@ -31,7 +31,7 @@ wandb_run_name="match_filter_user_sft"
 
 run_dir_suffix="match_filter_user_sft"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=match_filter_user_sft+top1-0.3+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
+run_name=match_filter_user_sft+dpo+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
 log_dir=log/match_filter_user_sft/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 

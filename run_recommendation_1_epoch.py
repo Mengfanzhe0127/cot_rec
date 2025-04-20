@@ -404,7 +404,8 @@ def main():
             predict_dataset = predict_dataset.select(range(max_predict_samples))
 
     if model_args.log_step:
-        steps_to_log = [30, 31, 32, 34]
+        # steps_to_log = [30, 31, 32, 34]
+        steps_to_log = [1, 2, 3]
 
         trainer = CustomTrainer(
             model=model,
