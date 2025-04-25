@@ -8,11 +8,11 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 master_port=$2
 
 model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
-train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/train_dpo_preference.jsonl"
-valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/valid_dpo_preference.jsonl"
-test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/test_dpo_preference.jsonl"
+train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_final/train_dpo_final_preference.jsonl"
+valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_final/valid_dpo_final_preference.jsonl"
+test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_final/test_dpo_final_preference.jsonl"
 # movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/movies_with_mentions_clean.csv"
-movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo/matched_movies_origin.json"
+movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_final/matched_movies_origin.json"
 item_max_length=128
 item_batch_size=32
 num_negative_samples=32
@@ -32,7 +32,7 @@ wandb_run_name="match_filter_user_sft"
 
 run_dir_suffix="match_filter_user_sft"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=match_filter_user_sft+dpo-preference+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
+run_name=match_filter_user_sft+dpo_final-preference+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
 log_dir=log/match_filter_user_sft/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 

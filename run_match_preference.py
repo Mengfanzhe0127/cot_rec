@@ -425,8 +425,6 @@ def main():
         max_item_length=data_args.item_max_length,
         num_negatives=data_args.num_negative_samples,
     )
-
-    # steps_to_log = [69]
     
     trainer = DSSMTrainerPreference(
         model=model,
@@ -440,7 +438,6 @@ def main():
         movie_info_dict=movie_info_dict,
         data_args=data_args,
         data_collator=data_collator,
-        # steps_to_log=steps_to_log,
     )
 
     if training_args.report_to and "wandb" in training_args.report_to:
