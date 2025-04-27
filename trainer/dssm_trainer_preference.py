@@ -18,7 +18,7 @@ class DSSMTrainerPreference(Trainer):
         super().__init__(*args, **kwargs)
         self.item_embedding_matrix = None
         self.movie_list = movie_list
-        self.movie_to_idx = {movie: idx for idx, movie in enumerate(movie_list)}
+        self.movie_to_idx = {movie.strip(): idx for idx, movie in enumerate(movie_list)}
         # eval / predict使用全部的item embedding
         self.movie_info_dict = movie_info_dict
         self.data_args = data_args

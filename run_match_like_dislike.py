@@ -156,10 +156,6 @@ class DataArguments:
     shuffle_seed: int = field(
         default=42, metadata={"help": "Random seed that will be used to shuffle the train dataset."}
     )
-    # movie_name_path: str = field(
-    #     default="dataset/movies_with_mentions.csv",
-    #     metadata={"help": "Path to the movie name file."}
-    # )
     movie_info_path: str = field(
         default=None,
         metadata={"help": "Path to the movie info file."}
@@ -261,7 +257,7 @@ def main():
     
     
     data_files = {}
-    if data_args.train_file is not None:
+    if data_args.train_file is not None and training_args.do_train:
         data_files["train"] = data_args.train_file
         logger.info(f"Training data file: {data_args.train_file}")
     if data_args.validation_file is not None and training_args.do_eval:
@@ -293,21 +289,22 @@ def main():
     # print(f"{len(movie_list)} movies has been loaded")
     ################################################################
 
-    movie_set = set()
-    train_movie_names = [movie.strip() for movie in raw_datasets["train"]["target_movie"]]
-    movie_set.update(train_movie_names)
-    for dataset_name in ["validation", "test"]:
-        val_or_test_movie_names = [movie.strip() for movie in raw_datasets[dataset_name]["target_movie"]]
-        diff = movie_set - set(val_or_test_movie_names)
-        print(f"There are {len(diff)} movies in {dataset_name} that are not in train")
-        movie_set.update(val_or_test_movie_names)
-    movie_list = sorted(list(movie_set))
-    print(f"{len(movie_list)} movies has been loaded")
-    
-
     with open(data_args.movie_info_path, 'r', encoding='utf-8') as f:
         movie_info_dict = json.load(f)
     print(f"Finish loading movie info")
+    train_movie_set = set([movie.strip() for movie in raw_datasets["train"]["target_movie"]])
+    valid_movie_set = set([movie.strip() for movie in raw_datasets["validation"]["target_movie"]])
+    test_movie_set = set([movie.strip() for movie in raw_datasets["test"]["target_movie"]])
+
+    train_movie_list = sorted(list(train_movie_set))
+    all_movie_set = train_movie_set.union(valid_movie_set).union(test_movie_set)
+    all_movie_list = sorted(list(all_movie_set))
+
+    print(f"train_movie_list_items: {len(train_movie_list)}")
+    print(f"all_movie_list_items: {len(all_movie_list)}")
+
+    print(f"There are {len(valid_movie_set - train_movie_set)} movies in validation that are not in train")
+    print(f"There are {len(test_movie_set - train_movie_set)} movies in test that are not in train")
     
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
@@ -343,7 +340,11 @@ def main():
         trust_remote_code=model_args.trust_remote_code,
     )
 
-    def preprocess_function(examples):
+    movie_name_to_idx = {name.strip(): i for i, name in enumerate(all_movie_list)}
+    all_movie_indices = set([movie_name_to_idx[movie.strip()] for movie in all_movie_set])
+    train_movie_indices = set([movie_name_to_idx[movie.strip()] for movie in train_movie_set if movie.strip() in movie_name_to_idx]) # 应用于训练集的负采样
+
+    def preprocess_function(examples, split_name="train"):
         # 对like文本进行编码
         like_texts = examples["like"]
         like_texts_with_prompt = [f"Given a user's movie preferences, retrieve relevant movies that match these preferences\nQuery: {text}" if text.strip() else "" 
@@ -368,7 +369,6 @@ def main():
             truncation=True,
         )
 
-        movie_name_to_idx = {name.strip(): i for i, name in enumerate(movie_list)}
         num_negatives = data_args.num_negative_samples
         batch_size = len(examples[data_args.label_column_name])
 
@@ -383,13 +383,16 @@ def main():
             movie_indices.append(pos_idx)
         
             # ========== 负样本采样 ==========
-            all_indices = set(range(len(movie_list)))
-            all_indices.remove(pos_idx)
-            neg_indices = random.sample(list(all_indices), num_negatives)
+            if split_name == "train":
+                available_indices = train_movie_indices - {pos_idx}
+                neg_indices = random.sample(list(available_indices), num_negatives)
+            else:
+                all_indices = all_movie_indices - {pos_idx}
+                neg_indices = random.sample(list(all_indices), num_negatives)
 
             # ========== 生成正负样本文本 ==========
             pos_text = create_movie_text(movie_name, movie_info_dict)
-            neg_texts = [create_movie_text(movie_list[idx], movie_info_dict) for idx in neg_indices]
+            neg_texts = [create_movie_text(all_movie_list[idx], movie_info_dict) for idx in neg_indices]
             all_item_texts.extend([pos_text] + neg_texts)  # 先展平为二维结构
 
         # ========== 逐样本分词 ==========
@@ -412,18 +415,19 @@ def main():
             "labels": movie_indices,
         }
     
-    processed_datasets = raw_datasets.map(
-        preprocess_function,
-        batched=True,
-        num_proc=data_args.preprocessing_num_workers,
-        remove_columns=raw_datasets["train"].column_names if "train" in raw_datasets else None,
-        load_from_cache_file=not data_args.overwrite_cache,
-        desc="Tokenizing dataset",
+    processed_datasets = DatasetDict()
+    for split, dataset in raw_datasets.items():
+        processed_datasets[split] = dataset.map(
+            lambda examples: preprocess_function(examples, split_name=split),
+            batched=True,
+            num_proc=data_args.preprocessing_num_workers,
+            remove_columns=dataset.column_names,
+            load_from_cache_file=not data_args.overwrite_cache,
+            desc=f"Tokenizing {split} dataset",
     ) # train, valid, test
 
-    
     # 筛选数据集
-    if "train" in processed_datasets:
+    if training_args.do_train:
         train_dataset = processed_datasets["train"]
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
@@ -460,7 +464,7 @@ def main():
         compute_metrics=compute_metrics,
         processing_class=tokenizer,
         similarity_temperature=model_args.similarity_temperature,
-        movie_list=movie_list,
+        movie_list=all_movie_list,
         movie_info_dict=movie_info_dict,
         data_args=data_args,
         data_collator=data_collator,  # 使用自定义的数据整理器
