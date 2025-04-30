@@ -8,11 +8,11 @@ GPU_COUNT=$(echo "$GPU_ID" | awk -F',' '{print NF}')
 master_port=$2
 
 model_name_or_path="/mnt/wangxiaolei/model/Qwen/gte-Qwen2-7B-instruct"
-train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_combine_final/train_dpo_combine_preference.jsonl"
-valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_combine_final/valid_dpo_combine_preference.jsonl"
-test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_combine_final/test_dpo_combine_preference.jsonl"
+train_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/qwen3_8b/train_new_qwen_3_preference.jsonl"
+valid_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/qwen3_8b/valid_new_qwen_3_preference.jsonl"
+test_file="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/qwen3_8b/test_new_qwen_3_preference.jsonl"
 # movie_name_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/movies_with_mentions_clean.csv"
-movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/dpo_combine_final/matched_movies_origin.json"
+movie_info_path="/home/wangxiaolei/mengfanzhe/cot_rec/dataset/filter_user_match/qwen3_8b/matched_movies_origin.json"
 item_max_length=128
 item_batch_size=32
 num_negative_samples=32
@@ -32,7 +32,7 @@ wandb_run_name="match_filter_user_sft"
 
 run_dir_suffix="match_filter_user_sft"
 timestamp=$(date +"%Y%m%d-%H%M%S")
-run_name=match_filter_user_sft+dpo_combine-preference+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
+run_name=match_filter_user_sft+qwen3_8b-preference+epoch-${num_epochs}+bs-${train_batch_size}+lr-${learning_rate}+gradient_accumulation_steps-${gradient_accumulation_steps}+num_negative_samples-${num_negative_samples}
 log_dir=log/match_filter_user_sft/${run_dir_suffix}/${run_name}_${timestamp}
 mkdir -p ${log_dir}
 
