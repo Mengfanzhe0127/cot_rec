@@ -134,7 +134,7 @@ class DataArguments:
 
     # 预处理进程数
     preprocessing_num_workers: Optional[int] = field(
-        default=32,
+        default=4,
         metadata={"help": "The number of processes to use for the preprocessing."}
     )
 

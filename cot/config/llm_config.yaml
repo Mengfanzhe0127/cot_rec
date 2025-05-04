@@ -1,0 +1,11 @@
+OPENAI_API_KEY: EMPTY
+OPENAI_API_BASE: http://localhost:8000/v1
+MODEL_NAME: /media/public/models/huggingface/meta-llama/Meta-Llama-3.1-8B-Instruct
+TEMPERATURE: 0.7
+
+API_MAX_RETRIES: 1
+VALID_MAX_RETRIES: 50
+RETRY_DELAY: 1
+
+REQUEST_TIMEOUT: int = 30
+CACHE_FILEPATH: cache/llm_response.json

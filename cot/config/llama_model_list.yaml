@@ -1,0 +1,16 @@
+- model_name: llama
+  litellm_params:
+    model: hosted_vllm//media/public/models/huggingface/meta-llama/Meta-Llama-3.1-8B-Instruct
+    api_key: EMPTY
+    api_base: http://localhost:8000/v1
+    max_parallel_requests: 100
+    max_retries: 3
+    timeout: 60
+- model_name: llama
+  litellm_params:
+    model: hosted_vllm//media/public/models/huggingface/meta-llama/Meta-Llama-3.1-8B-Instruct
+    api_key: EMPTY
+    api_base: http://localhost:8005/v1
+    max_parallel_requests: 100
+    max_retries: 3
+    timeout: 60

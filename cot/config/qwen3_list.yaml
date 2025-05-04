@@ -1,0 +1,16 @@
+- model_name: qwen3-8b
+  litellm_params:
+    model: hosted_vllm//mnt/wangxiaolei/model/Qwen/Qwen3-8B
+    api_key: EMPTY
+    api_base: http://localhost:8000/v1
+    max_parallel_requests: 120
+    max_retries: 3
+    timeout: 60
+- model_name: qwen3-8b
+  litellm_params:
+    model: hosted_vllm//mnt/wangxiaolei/model/Qwen/Qwen3-8B
+    api_key: EMPTY
+    api_base: http://localhost:8005/v1
+    max_parallel_requests: 120
+    max_retries: 3
+    timeout: 60

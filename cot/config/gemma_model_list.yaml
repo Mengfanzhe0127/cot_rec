@@ -1,0 +1,16 @@
+- model_name: gemma
+  litellm_params:
+    model: hosted_vllm//media/public/models/huggingface/google/gemma-2-9b-it
+    api_key: EMPTY
+    api_base: http://localhost:8000/v1
+    max_parallel_requests: 100
+    max_retries: 1
+    timeout: 120
+- model_name: gemma
+  litellm_params:
+    model: hosted_vllm//media/public/models/huggingface/google/gemma-2-9b-it
+    api_key: EMPTY
+    api_base: http://localhost:8002/v1
+    max_parallel_requests: 100
+    max_retries: 1
+    timeout: 120
