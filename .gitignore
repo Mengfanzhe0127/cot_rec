@@ -5,3 +5,6 @@ process_dataset/
 梯度爆炸分析/
 prompt分析/
 cot/data/
+view_tokens.ipynb
+test_sample.ipynb
+classify_4_method.ipynb
